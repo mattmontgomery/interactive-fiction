@@ -4,7 +4,7 @@ import { GameState } from "./interfaces";
 
 export default function Debug() {
   const { log, env } = useSelector((state: GameState) => ({
-    log: state.log.reverse().slice(0, 10),
+    log: [...state.log].reverse().slice(0, 10),
     env: state.env,
   }));
   const state = useSelector((state) =>

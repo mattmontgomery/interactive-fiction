@@ -58,7 +58,7 @@
       "name": "rubber duck",
       "article": "a",
       "descriptions": {
-        "LOOK": "You often talk to this when you're trying to figure out a problem.",
+        "LOOK": "You often talk to this when you're trying to figure out a problem. Sometimes, you tape things to it. Maybe try searching it, eh?",
         "SEARCH": "Upon searching this, you find a coin stuck to the bottom. What could this do, do you think?"
       },
       "objects": ["COIN"],
@@ -88,6 +88,7 @@
       "descriptions": {
         "LOOK": "You thought you had lost that. Turns out, you just put it in the magical bag you always carry with you.",
         "GET": "You grab the remote from the bag of holding. Great work!",
+        "USE": "How do you work this thing again?",
         "USE_INVENTORY": "How do you work this thing again?"
       },
       "canGet": true

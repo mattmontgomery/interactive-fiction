@@ -36,6 +36,8 @@ export const FAILURE_RESPONSES: Responses = {
   GET: [`You can't get that. Sorry.`],
   MALFORMED_REQUEST: [
     "What did you think was going to happen? Nothing happens.",
+    "I'm sorry. I can't do that, Dave.",
+    "Uh-huh.",
   ],
 };
 
@@ -50,25 +52,23 @@ export const SUCCESS_RESPONSES: Responses = {
       `So, uh, this is awkward, but there isn't a ${lookItem} here.`,
     (lookItem) => `Hey. No ${lookItem} here. Sorry. Move along.`,
   ],
-  LOOK_INVENTORY: [(item, extra: InventoryObject) => extra.descriptions.LOOK],
+  LOOK_INVENTORY: [(_, extra: InventoryObject) => extra.descriptions.LOOK],
   SEARCH: [],
   SEARCH_INVENTORY: [
-    (item, extra) =>
-      `You are holding ${(extra as InventoryObject).article} ${
-        (extra as InventoryObject).name
-      }. ${(extra as InventoryObject).descriptions.SEARCH}`,
+    (_, extra) => (extra as InventoryObject).descriptions.SEARCH,
+  ],
+  USE_INVENTORY: [
+    (_, extra) => (extra as InventoryObject).descriptions.USE_INVENTORY,
   ],
   GET: [
-    `You successfully pick the thing up you wanted to pick up. Nice job. A gold star appears on your forehead.`,
-    (item, extra) =>
+    (_, extra) =>
       `You get ${(extra as InventoryObject).article} ${
         (extra as InventoryObject).name
       }. Neat!`,
   ],
 };
 
-export function getResponse(success, action, data, extra?) {
-  console.log({ success, action, data, extra });
+export function getResponse(success, action, data?, extra?) {
   const responseSet = success ? SUCCESS_RESPONSES : FAILURE_RESPONSES;
   action = !responseSet[action] ? "MALFORMED_REQUEST" : action;
   const response =

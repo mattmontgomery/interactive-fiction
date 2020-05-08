@@ -4,10 +4,10 @@ import "./App.css";
 import CommandBar from "./CommandBar";
 import Debug from "./Debug";
 import Game from "./Game";
-import { connect, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { GameState } from "./interfaces";
 
-export function App() {
+export default function App() {
   const { ended } = useSelector((state: GameState) => ({
     ended: state.ended,
   }));
@@ -65,8 +65,3 @@ export function App() {
     </div>
   );
 }
-
-export default connect((state: { ended: Boolean }) => ({
-  env: process.env.NODE_ENV,
-  ended: state.ended,
-}))(App);

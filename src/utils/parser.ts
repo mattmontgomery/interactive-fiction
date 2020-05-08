@@ -63,7 +63,7 @@ export default function parser(
   if (!~state.verbs.indexOf(verb)) {
     return next({
       type: "ADD_STATE",
-      data: "I'm sorry, I have NO idea what you meant",
+      data: getResponse(false, "MALFORMED_REQUEST"),
     });
   }
   // verb on room
@@ -155,16 +155,16 @@ export default function parser(
           room: state.room,
         },
       });
-      return next({
-        type: "ADD_STATE",
-        data: getResponse(true, "DROP", object, eligibleObjects[object]),
-      });
-    } else {
-      return next({
-        type: "ADD_STATE",
-        data: getResponse(false, "DROP", object, eligibleObjects[object]),
-      });
     }
+    return next({
+      type: "ADD_STATE",
+      data: getResponse(
+        eligibleObjects[object].source === "inventory",
+        "DROP",
+        object,
+        eligibleObjects[object]
+      ),
+    });
   }
 
   if (

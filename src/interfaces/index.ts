@@ -1,3 +1,5 @@
+import { AnyAction } from "redux";
+
 export interface Descriptions {
   [verb: string]: string;
 }
@@ -10,11 +12,15 @@ export interface Room {
     };
   };
 }
+
+export interface GameSet<T> {
+  [object: string]: T;
+}
 export interface GameObject {
   name: string;
-  article: string;
+  article: "a" | "the";
   descriptions: Descriptions;
-  objects: GameObject[];
+  objects?: GameObject[];
   canGet: boolean;
 }
 export interface Actor {
@@ -22,20 +28,25 @@ export interface Actor {
 }
 
 export interface GameState {
+  gameState: string[];
   ended: boolean;
-  env: string;
+  env: "production" | "development" | "demo" | "test";
   log: string[];
   actors: {
     [actor: string]: Actor;
   };
-  verbs: string;
-  triggersEvents: string;
+  verbs: string[];
+  triggersEvents: string[];
   room: string;
-  rooms: {
-    [room: string]: Room;
-  };
-  objects: {
-    [object: string]: GameObject;
-  };
+  rooms: GameSet<Room>;
+  objects: GameSet<GameObject>;
   inventory: string[];
+}
+
+export interface GameDispatch {
+  (GameAction): void;
+}
+export interface GameAction extends AnyAction {
+  type: string;
+  data?: any;
 }

@@ -16,6 +16,7 @@ import {
   END_GAME,
   ENV_SET,
 } from "./actions";
+import { GameState } from "../interfaces";
 
 interface GameAction extends Action {
   data: any;
@@ -26,7 +27,10 @@ const interactiveParserMiddleware: Middleware = ({ getState }) => {
 };
 
 const reducers = {
-  inventory: (state = [], action: GameAction) => {
+  inventory: (
+    state: GameState["inventory"] = [],
+    action: GameAction
+  ): GameState["inventory"] => {
     switch (action.type) {
       case HYDRATE_NEW:
         return action.data.actors.EGO.defaultObjects;
@@ -37,14 +41,20 @@ const reducers = {
     }
     return state;
   },
-  room: (state = "", action: GameAction) => {
+  room: (
+    state: GameState["room"] = "",
+    action: GameAction
+  ): GameState["room"] => {
     switch (action.type) {
       case HYDRATE_NEW:
         return action.data.actors.EGO.defaultRoom;
     }
     return state;
   },
-  actors: (state = {}, action: GameAction) => {
+  actors: (
+    state: GameState["actors"] = {},
+    action: GameAction
+  ): GameState["actors"] => {
     switch (action.type) {
       case HYDRATE_NEW:
         return action.data.actors;
@@ -52,15 +62,18 @@ const reducers = {
 
     return state;
   },
-  objects: (state = {}, action: GameAction) => {
+  objects: (
+    state: GameState["objects"] = {},
+    action: GameAction
+  ): GameState["objects"] => {
     switch (action.type) {
       case HYDRATE_NEW:
         return action.data.objects;
       case OBJECT_OBJECT_REMOVE:
         return Object.entries(state)
           .map(([key, value]) => ({
-            ...(value as {}),
-            objects: ((value as { objects: string[] }).objects || []).filter(
+            ...value,
+            objects: (value.objects || []).filter(
               (i) => i !== action.data.object
             ),
             key,
@@ -69,7 +82,10 @@ const reducers = {
     }
     return state;
   },
-  rooms: (state = {}, action: GameAction) => {
+  rooms: (
+    state: GameState["rooms"] = {},
+    action: GameAction
+  ): GameState["rooms"] => {
     switch (action.type) {
       case HYDRATE_NEW:
         return action.data.rooms;
@@ -97,21 +113,30 @@ const reducers = {
     }
     return state;
   },
-  verbs: (state = [], action: GameAction) => {
+  verbs: (
+    state: GameState["verbs"] = [],
+    action: GameAction
+  ): GameState["verbs"] => {
     switch (action.type) {
       case HYDRATE_NEW:
         return action.data.verbs;
     }
     return state;
   },
-  triggersEvents: (state = [], action: GameAction) => {
+  triggersEvents: (
+    state: GameState["triggersEvents"] = [],
+    action: GameAction
+  ): GameState["triggersEvents"] => {
     switch (action.type) {
       case HYDRATE_NEW:
         return action.data.triggersEvents;
     }
     return state;
   },
-  gameState: (state = [], action: GameAction) => {
+  gameState: (
+    state: GameState["gameState"] = [],
+    action: GameAction
+  ): GameState["gameState"] => {
     switch (action.type) {
       case "ADD_STATE":
         return [...state, action.data];
@@ -123,17 +148,23 @@ const reducers = {
     }
     return state;
   },
-  log: (state = [], action: any) => {
+  log: (state: GameState["log"] = [], action: any): GameState["log"] => {
     return [...state, action];
   },
-  ended: (state = false, action: AnyAction) => {
+  ended: (
+    state: GameState["ended"] = false,
+    action: AnyAction
+  ): GameState["ended"] => {
     if (action.type === END_GAME) {
       return true;
     } else {
       return state;
     }
   },
-  env: (state = process.env.NODE_ENV || "", action: AnyAction) => {
+  env: (
+    state: GameState["env"] = process.env.NODE_ENV || "",
+    action: AnyAction
+  ): GameState["env"] => {
     switch (action.type) {
       case ENV_SET:
         return action.data;

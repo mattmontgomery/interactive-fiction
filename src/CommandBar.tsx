@@ -1,11 +1,12 @@
 import React, { FormEvent, useRef, useState, KeyboardEvent } from "react";
 import { useDispatch } from "react-redux";
+import { GameDispatch } from "./interfaces";
 export const SUBMIT_EVENT = "CommandBar/submit";
 
-export function CommandBar(props) {
+export function CommandBar() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [history, setHistory] = useState<string[]>([]);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<GameDispatch>();
   return (
     <form
       onKeyUp={(ev: KeyboardEvent) => {
@@ -19,12 +20,10 @@ export function CommandBar(props) {
       onSubmit={(ev: FormEvent<HTMLFormElement>) => {
         ev.preventDefault();
         ev.stopPropagation();
-        const value = ((ev.target as HTMLFormElement)!
-          .elements[0] as HTMLInputElement)!.value;
-        dispatch({ type: SUBMIT_EVENT, data: value });
+        const value = inputRef.current!.value;
         setHistory([...history, value]);
-        ((ev.target as HTMLFormElement)!
-          .elements[0] as HTMLInputElement).value = "";
+        dispatch({ type: SUBMIT_EVENT, data: value });
+        inputRef.current!.value = "";
       }}
       style={{
         display: "grid",
