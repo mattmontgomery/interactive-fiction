@@ -1,5 +1,6 @@
 {
-  "verbs": ["LOOK", "SEARCH"],
+  "verbs": ["LOOK", "SEARCH", "JUMP", "GET", "DROP", "INSERT", "USE"],
+  "triggersEvents": ["USE"],
   "actors": {
     "EGO": {
       "defaultName": "Matt",
@@ -7,7 +8,9 @@
       "defaultRoom": "home-2b",
       "name": "Matt",
       "descriptions": {
-        "LOOK": "You stand a commanding 5-foot-6. Everybody's afraid of you."
+        "LOOK": "You stand a commanding 5-foot-6. Everybody's afraid of you because of your massive height.",
+        "SEARCH": "It appears you're holding a Bag of Holding. Didn't expect that, did you?",
+        "JUMP": "Whee!"
       }
     }
   },
@@ -18,10 +21,16 @@
     "home-2a": {},
     "home-2b": {
       "descriptions": {
-        "LOOK": "You are standing in an empty room. There's a chair.",
-        "SEARCH": "Oh, hey. There's a towel hanging over a chair. You probably left it there, huh? Yeah, you definitely left it there."
+        "INTRO": "You rouse from your sleep, and though you're a bit confused about where you are, there's a very pleasant sense to this place.",
+        "LOOK": "You are standing in room that's mostly empty. There's just a single chair here. Maybe you should look at it. There's also a painting on the wall. It seems oddly familiar.",
+        "SEARCH": "You search and search and search, but you don't learn anything new that you didn't by looking. Maybe try looking more closely at some things around you."
       },
-      "objects": ["TOWEL", "CHAIR"]
+      "objects": ["CHAIR", "MARBLE", "TOWEL", "RUBBER-DUCK", "PAINTING"],
+      "events": {
+        "USE-PAINTING-COIN": {
+          "triggers": "END_GAME"
+        }
+      }
     },
     "home-2c": {},
     "home-3a": {},
@@ -33,22 +42,76 @@
       "name": "chair",
       "article": "a",
       "descriptions": {
-        "LOOK": "There's a towel hanging over the chair. You probably left it there, huh? Yeah, you definitely left it there."
-      }
+        "LOOK": "There's a towel hanging over the chair. You probably left it there, huh? Yeah, you definitely left it there. There's also a rubber duck sitting on the chair."
+      },
+      "objects": ["TOWEL", "RUBBER-DUCK"]
     },
     "TOWEL": {
       "name": "towel",
       "article": "the",
       "descriptions": {
-        "LOOK": "Yeah, it's the towel. You can't pick it up. Sorry."
+        "LOOK": "Yeah, it's the towel. You can't pick it up. Sorry.",
+        "GET": "Try as you might, you can't actually pick up the towel. You're not sure why."
+      }
+    },
+    "RUBBER-DUCK": {
+      "name": "rubber duck",
+      "article": "a",
+      "descriptions": {
+        "LOOK": "You often talk to this when you're trying to figure out a problem.",
+        "SEARCH": "Upon searching this, you find a coin stuck to the bottom. What could this do, do you think?"
+      },
+      "objects": ["COIN"],
+      "canGet": true
+    },
+    "MARBLE": {
+      "name": "marble",
+      "article": "a",
+      "canGet": true,
+      "descriptions": {
+        "LOOK": "It's an ordinary marble. It is blue.",
+        "GET": "You pick up the marble. It is cool to the touch."
       }
     },
     "BAG-OF-HOLDING": {
       "name": "Bag of Holding",
       "article": "a",
       "descriptions": {
-        "LOOK": "The bag of holding appears to be empty. Not such a great bag, now is it?"
-      }
+        "LOOK": "The bag of holding appears to be empty. Not such a great bag, now is it?",
+        "SEARCH": "So that's where you left the remote!"
+      },
+      "objects": ["REMOTE"]
+    },
+    "REMOTE": {
+      "name": "remote control",
+      "article": "the",
+      "descriptions": {
+        "LOOK": "You thought you had lost that. Turns out, you just put it in the magical bag you always carry with you.",
+        "GET": "You grab the remote from the bag of holding. Great work!",
+        "USE_INVENTORY": "How do you work this thing again?"
+      },
+      "canGet": true
+    },
+    "COIN": {
+      "name": "coin",
+      "article": "a",
+      "descriptions": {
+        "LOOK": "It appears to be a normal coin.",
+        "SEARCH": "You feel the ridges of the coin. Yep, it's a normal coin. You may not be a normal person, but it's a normal coin.",
+        "GET": "You snatch the coin away from the duck."
+      },
+      "canGet": true
+    },
+    "PAINTING": {
+      "name": "painting",
+      "article": "a",
+      "descriptions": {
+        "LOOK": "The painting hangs on the wall slightly crooked. You think about adjusting it, but on second thought ... you better not.",
+        "SEARCH": "Huh. What's that? There's a small hole.",
+        "USE-REMOTE": "Thinking the painting was actually a television with some sort of very realistic paint-splattered screensaver on it, you press every button on the remote twice. Nothing happens.",
+        "USE-COIN": "You hear a small click as you insert the coin into the small hole in the painting. The floor starts to drop out from under you. This is the end, isn't it? (It's not. But you'll have to wait for episode 2 to find out.)"
+      },
+      "usesObjects": ["COIN", "REMOTE"]
     }
   }
 }

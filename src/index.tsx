@@ -8,6 +8,8 @@ import store from "./store";
 import hydrate from "./store/hydrate";
 import { Provider } from "react-redux";
 
+(window as any)!.store = store;
+
 hydrate(store, "/gameConfig.json");
 
 ReactDOM.render(

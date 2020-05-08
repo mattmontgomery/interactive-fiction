@@ -1,4 +1,5 @@
 import { Store } from "redux";
+import { HYDRATE_NEW } from "./actions";
 
 export default async function hydrateFromJson(
   store: any,
@@ -6,7 +7,7 @@ export default async function hydrateFromJson(
 ): Promise<Store> {
   const resp = await fetch(uri);
   store.dispatch({
-    type: "hydrate",
+    type: HYDRATE_NEW,
     data: await resp.json(),
   });
   return store;

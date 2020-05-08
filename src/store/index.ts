@@ -4,162 +4,49 @@ import {
   combineReducers,
   Action,
   Middleware,
+  AnyAction,
 } from "redux";
-import { SUBMIT_EVENT } from "../CommandBar";
+import parser from "../utils/parser";
+import {
+  INVENTORY_ITEM_ADD,
+  INVENTORY_ITEM_DROP,
+  ROOM_OBJECT_REMOVE,
+  OBJECT_OBJECT_REMOVE,
+  HYDRATE_NEW,
+  END_GAME,
+  ENV_SET,
+} from "./actions";
 
 interface GameAction extends Action {
   data: any;
 }
 
-interface Responses {
-  [verb: string]: (string | ResponseFunction)[];
-}
-interface ResponseFunction {
-  (verb: string): string;
-}
-
 const interactiveParserMiddleware: Middleware = ({ getState }) => {
-  return (next) => (action) => {
-    console.log({
-      searchingFor: SUBMIT_EVENT,
-      type: action.type,
-      data: action.data,
-      nextAction: next(action),
-    });
-    if (action.type === SUBMIT_EVENT) {
-      const currentRoom = getState().rooms[getState().room];
-
-      const objectReducer = (source, append?: string) => (acc, obj) => {
-        console.log({
-          acc,
-          obj,
-          append,
-          source,
-          objs: getState().objects[`${obj}${append}`],
-        });
-        const object =
-          getState().objects[`${obj}${append}`] || getState().objects[obj];
-        acc[obj] = { ...object, source };
-        return acc;
-      };
-      const eligibleObjects = {
-        ...getState().inventory.reduce(objectReducer("inventory"), {}),
-        ...(currentRoom.objects || []).reduce(objectReducer("room"), {}),
-        ...(currentRoom.objects || []).reduce(
-          objectReducer("room", `-${getState().room}`),
-          {}
-        ),
-      };
-
-      console.log({ eligibleObjects, currentRoom });
-
-      const parts = action.data.split(" ").reverse();
-      const verb = parts.pop().toUpperCase();
-      if (!~getState().verbs.indexOf(verb)) {
-        return next({
-          type: "ADD_STATE",
-          data: "I'm sorry, I have NO idea what you meant",
-        });
-      }
-      // verb on room
-      if (parts.length === 0 && currentRoom.descriptions[verb]) {
-        return next({
-          type: "ADD_STATE",
-          data: currentRoom.descriptions[verb],
-        });
-      }
-      // CASE: WE HAVE NO OBJECT
-      if (parts.length === 0 && !currentRoom.descriptions[verb]) {
-        return next({
-          type: "ADD_STATE",
-          data: "I'm sorry, you will have to be more specific.",
-        });
-      }
-      if (parts.reverse()[0].toLowerCase() === "at") {
-        // continue
-        parts.reverse().pop();
-      } else {
-        parts.reverse();
-      }
-      if (parts.length === 0) {
-        return next({
-          type: "ADD_STATE",
-          data: "I'm sorry, you will have to be more specific.",
-        });
-      }
-
-      // CASE: WE HAVE AN OBJECT
-      const object = parts.reverse().join("-").toUpperCase();
-
-      console.log({ object, eligibleObjects });
-
-      // look in your inventory for object
-
-      if (
-        eligibleObjects[object] &&
-        eligibleObjects[object]!.source === "inventory"
-      ) {
-        // get the description from the objects
-        return next({
-          type: "ADD_STATE",
-          data: `You are holding ${getState().objects[object].article} ${
-            getState().objects[object].name
-          }. ${getState().objects[object].descriptions[verb]}`,
-        });
-      }
-
-      if (
-        eligibleObjects[object] &&
-        eligibleObjects[object].source === "room" &&
-        eligibleObjects[object].descriptions[verb]
-      ) {
-        // get the description from the objects
-        return next({
-          type: "ADD_STATE",
-          data: eligibleObjects[object].descriptions[verb],
-        });
-      }
-
-      // we failed to [verb]
-      if (FAILURE_RESPONSES[verb]) {
-        const failureResponse =
-          FAILURE_RESPONSES[verb][
-            Math.floor(Math.random() * FAILURE_RESPONSES[verb].length)
-          ];
-        return next({
-          type: "ADD_STATE",
-          data:
-            typeof failureResponse === "function"
-              ? failureResponse(object)
-              : failureResponse,
-        });
-      }
-      // if (~getState().objects.indexOf(parts[1]))
-      // parse the heck out of that thing
-    } else {
-      return next(action);
-    }
-  };
+  return (next) => (action) => parser(getState(), next, action);
 };
 
 const reducers = {
-  inventory: (state = {}, action: GameAction) => {
+  inventory: (state = [], action: GameAction) => {
     switch (action.type) {
-      case "hydrate":
+      case HYDRATE_NEW:
         return action.data.actors.EGO.defaultObjects;
+      case INVENTORY_ITEM_ADD:
+        return [...state, action.data];
+      case INVENTORY_ITEM_DROP:
+        return state.filter((item) => item !== action.data);
     }
     return state;
   },
   room: (state = "", action: GameAction) => {
     switch (action.type) {
-      case "hydrate":
+      case HYDRATE_NEW:
         return action.data.actors.EGO.defaultRoom;
     }
     return state;
   },
   actors: (state = {}, action: GameAction) => {
     switch (action.type) {
-      case "hydrate":
+      case HYDRATE_NEW:
         return action.data.actors;
     }
 
@@ -167,22 +54,60 @@ const reducers = {
   },
   objects: (state = {}, action: GameAction) => {
     switch (action.type) {
-      case "hydrate":
+      case HYDRATE_NEW:
         return action.data.objects;
+      case OBJECT_OBJECT_REMOVE:
+        return Object.entries(state)
+          .map(([key, value]) => ({
+            ...(value as {}),
+            objects: ((value as { objects: string[] }).objects || []).filter(
+              (i) => i !== action.data.object
+            ),
+            key,
+          }))
+          .reduce((acc, curr) => ({ ...acc, [curr.key]: curr }), {});
     }
     return state;
   },
   rooms: (state = {}, action: GameAction) => {
     switch (action.type) {
-      case "hydrate":
+      case HYDRATE_NEW:
         return action.data.rooms;
+      case INVENTORY_ITEM_DROP:
+        return {
+          ...action.data.rooms,
+          [action.data.room]: {
+            ...state[action.data.room],
+            objects: [
+              ...(state[action.data.room].objects || []),
+              action.data.object,
+            ],
+          },
+        };
+      case ROOM_OBJECT_REMOVE:
+        return {
+          ...action.data.rooms,
+          [action.data.room]: {
+            ...state[action.data.room],
+            objects: [...(state[action.data.room].objects || [])].filter(
+              (i) => i !== action.data.object
+            ),
+          },
+        };
     }
     return state;
   },
   verbs: (state = [], action: GameAction) => {
     switch (action.type) {
-      case "hydrate":
+      case HYDRATE_NEW:
         return action.data.verbs;
+    }
+    return state;
+  },
+  triggersEvents: (state = [], action: GameAction) => {
+    switch (action.type) {
+      case HYDRATE_NEW:
+        return action.data.triggersEvents;
     }
     return state;
   },
@@ -190,19 +115,32 @@ const reducers = {
     switch (action.type) {
       case "ADD_STATE":
         return [...state, action.data];
+      case HYDRATE_NEW:
+        return [
+          action.data.rooms[action.data.actors.EGO.defaultRoom].descriptions
+            .INTRO,
+        ];
     }
     return state;
   },
-};
-
-const FAILURE_RESPONSES: Responses = {
-  LOOK: [
-    `The thing you're looking for isn't here.`,
-    (lookItem) =>
-      `So, uh, this is awkward, but there isn't a ${lookItem} here.`,
-    (lookItem) => `Hey. No ${lookItem} here. Sorry. Move along.`,
-  ],
-  SEARCH: [`You search and search and search, but to no avail.`],
+  log: (state = [], action: any) => {
+    return [...state, action];
+  },
+  ended: (state = false, action: AnyAction) => {
+    if (action.type === END_GAME) {
+      return true;
+    } else {
+      return state;
+    }
+  },
+  env: (state = process.env.NODE_ENV || "", action: AnyAction) => {
+    switch (action.type) {
+      case ENV_SET:
+        return action.data;
+      default:
+        return state;
+    }
+  },
 };
 
 export default createStore(
